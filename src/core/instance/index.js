@@ -4,7 +4,7 @@ import { renderMixin } from './render'
 import { eventsMixin } from './events'
 import { lifecycleMixin } from './lifecycle'
 import { warn } from '../util/index'
-
+// Vue构造函数
 function Vue (options) {
   if (process.env.NODE_ENV !== 'production' &&
     !(this instanceof Vue)
@@ -14,6 +14,9 @@ function Vue (options) {
   this._init(options)
 }
 
+// 在Vue构造函数上挂载相关实例方法
+
+// 挂载_init方法
 initMixin(Vue)
 stateMixin(Vue)
 eventsMixin(Vue)

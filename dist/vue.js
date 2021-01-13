@@ -1,6 +1,6 @@
 /*!
  * Vue.js v2.6.12
- * (c) 2014-2020 Evan You
+ * (c) 2014-2021 Evan You
  * Released under the MIT License.
  */
 (function (global, factory) {
@@ -1784,18 +1784,19 @@
       " Expected " + (expectedTypes.map(capitalize).join(', '));
     var expectedType = expectedTypes[0];
     var receivedType = toRawType(value);
-    var expectedValue = styleValue(value, expectedType);
-    var receivedValue = styleValue(value, receivedType);
     // check if we need to specify expected value
-    if (expectedTypes.length === 1 &&
-        isExplicable(expectedType) &&
-        !isBoolean(expectedType, receivedType)) {
-      message += " with value " + expectedValue;
+    if (
+      expectedTypes.length === 1 &&
+      isExplicable(expectedType) &&
+      isExplicable(typeof value) &&
+      !isBoolean(expectedType, receivedType)
+    ) {
+      message += " with value " + (styleValue(value, expectedType));
     }
     message += ", got " + receivedType + " ";
     // check if we need to specify received value
     if (isExplicable(receivedType)) {
-      message += "with value " + receivedValue + ".";
+      message += "with value " + (styleValue(value, receivedType)) + ".";
     }
     return message
   }
@@ -1810,9 +1811,9 @@
     }
   }
 
+  var EXPLICABLE_TYPES = ['string', 'number', 'boolean'];
   function isExplicable (value) {
-    var explicitTypes = ['string', 'number', 'boolean'];
-    return explicitTypes.some(function (elem) { return value.toLowerCase() === elem; })
+    return EXPLICABLE_TYPES.some(function (elem) { return value.toLowerCase() === elem; })
   }
 
   function isBoolean () {
@@ -3273,8 +3274,10 @@
   }
 
   function createComponentInstanceForVnode (
-    vnode, // we know it's MountedComponentVNode but flow doesn't
-    parent // activeInstance in lifecycle state
+    // we know it's MountedComponentVNode but flow doesn't
+    vnode,
+    // activeInstance in lifecycle state
+    parent
   ) {
     var options = {
       _isComponent: true,
@@ -4971,6 +4974,7 @@
         mark(startTag);
       }
 
+      // 将当前对象标记为vue实例， 后续不需要再设置observe
       // a flag to avoid this being observed
       vm._isVue = true;
       // merge options
@@ -4981,9 +4985,9 @@
         initInternalComponent(vm, options);
       } else {
         vm.$options = mergeOptions(
-          resolveConstructorOptions(vm.constructor),
-          options || {},
-          vm
+          resolveConstructorOptions(vm.constructor), // 获取vm构造函数的option
+          options || {}, // _init时传入的options
+          vm // 当前vm示例对象
         );
       }
       /* istanbul ignore else */
@@ -5070,6 +5074,7 @@
     return modified
   }
 
+  // Vue构造函数
   function Vue (options) {
     if (!(this instanceof Vue)
     ) {
@@ -5078,6 +5083,9 @@
     this._init(options);
   }
 
+  // 在Vue构造函数上挂载相关实例方法
+
+  // 挂载_init方法
   initMixin(Vue);
   stateMixin(Vue);
   eventsMixin(Vue);
@@ -5128,6 +5136,11 @@
 
     /**
      * Class inheritance
+     */
+    /**
+     * 初始化一个构造函数， 让它继承自Vue,
+     * 将它的option和Vue的全局option合并作为该构造函数的option
+     *
      */
     Vue.extend = function (extendOptions) {
       extendOptions = extendOptions || {};
@@ -5419,12 +5432,26 @@
 
     extend(Vue.options.components, builtInComponents);
 
+    // Vue.use
     initUse(Vue);
+    // Vue.mixin
     initMixin$1(Vue);
+    // Vue.extend
     initExtend(Vue);
+    // 设置Vue.components, Vue.filters, Vue.directives
+    // 没传配置就是从中取值
     initAssetRegisters(Vue);
   }
 
+  // 平台无关， vue的核心代码入口
+
+  // 定义Vue中的静态方法set, delete, nextTick, observable
+  // 定义vue.config
+  // 初始化Vue全局注册的components, filters, directives对象, 并注册keepalive对象
+  // 将Vue挂载在Vue.options._base上面
+  // 设置use, mixin, extend 静态方法
+  // use: 执行plugins.install或者plugin方法
+  // mixin: 将传入的mixin对象合并到Vue的全局options中
   initGlobalAPI(Vue);
 
   Object.defineProperty(Vue.prototype, '$isServer', {
@@ -5480,7 +5507,7 @@
     'default,defaultchecked,defaultmuted,defaultselected,defer,disabled,' +
     'enabled,formnovalidate,hidden,indeterminate,inert,ismap,itemscope,loop,multiple,' +
     'muted,nohref,noresize,noshade,novalidate,nowrap,open,pauseonexit,readonly,' +
-    'required,reversed,scoped,seamless,selected,sortable,translate,' +
+    'required,reversed,scoped,seamless,selected,sortable,' +
     'truespeed,typemustmatch,visible'
   );
 
@@ -6705,7 +6732,7 @@
       cur = attrs[key];
       old = oldAttrs[key];
       if (old !== cur) {
-        setAttr(elm, key, cur);
+        setAttr(elm, key, cur, vnode.data.pre);
       }
     }
     // #4391: in IE9, setting type can reset value for input[type=radio]
@@ -6725,8 +6752,8 @@
     }
   }
 
-  function setAttr (el, key, value) {
-    if (el.tagName.indexOf('-') > -1) {
+  function setAttr (el, key, value, isInPre) {
+    if (isInPre || el.tagName.indexOf('-') > -1) {
       baseSetAttr(el, key, value);
     } else if (isBooleanAttr(key)) {
       // set attribute for blank value
@@ -9019,8 +9046,8 @@
     TransitionGroup: TransitionGroup
   };
 
-  /*  */
-
+  // runtime版vue
+  // 在Vue.config上挂载方法
   // install platform specific utils
   Vue.config.mustUseProp = mustUseProp;
   Vue.config.isReservedTag = isReservedTag;
@@ -9028,13 +9055,16 @@
   Vue.config.getTagNamespace = getTagNamespace;
   Vue.config.isUnknownElement = isUnknownElement;
 
+  // 挂载web平台上的全局指令v-model, v-show和全局组件keepalive
   // install platform runtime directives & components
   extend(Vue.options.directives, platformDirectives);
   extend(Vue.options.components, platformComponents);
 
+  // 挂载path方法， 将vnode渲染成真实dom
   // install platform patch function
   Vue.prototype.__patch__ = inBrowser ? patch : noop;
 
+  // 定义$mount方法， 执行mountComponent
   // public mount method
   Vue.prototype.$mount = function (
     el,
@@ -9247,7 +9277,7 @@
 
   // Regular Expressions for parsing tags and attributes
   var attribute = /^\s*([^\s"'<>\/=]+)(?:\s*(=)\s*(?:"([^"]*)"+|'([^']*)'+|([^\s"'=<>`]+)))?/;
-  var dynamicArgAttribute = /^\s*((?:v-[\w-]+:|@|:|#)\[[^=]+\][^\s"'<>\/=]*)(?:\s*(=)\s*(?:"([^"]*)"+|'([^']*)'+|([^\s"'=<>`]+)))?/;
+  var dynamicArgAttribute = /^\s*((?:v-[\w-]+:|@|:|#)\[[^=]+?\][^\s"'<>\/=]*)(?:\s*(=)\s*(?:"([^"]*)"+|'([^']*)'+|([^\s"'=<>`]+)))?/;
   var ncname = "[a-zA-Z_][\\-\\.0-9_a-zA-Z" + (unicodeRegExp.source) + "]*";
   var qnameCapture = "((?:" + ncname + "\\:)?" + ncname + ")";
   var startTagOpen = new RegExp(("^<" + qnameCapture));
@@ -10850,9 +10880,9 @@
         code += genModifierCode;
       }
       var handlerCode = isMethodPath
-        ? ("return " + (handler.value) + "($event)")
+        ? ("return " + (handler.value) + ".apply(null, arguments)")
         : isFunctionExpression
-          ? ("return (" + (handler.value) + ")($event)")
+          ? ("return (" + (handler.value) + ").apply(null, arguments)")
           : isFunctionInvocation
             ? ("return " + (handler.value))
             : handler.value;
@@ -11867,7 +11897,7 @@
   // #6828: chrome encodes content in a[href]
   var shouldDecodeNewlinesForHref = inBrowser ? getShouldDecode(true) : false;
 
-  /*  */
+  // 完整版vue打包入口文件
 
   var idToTemplate = cached(function (id) {
     var el = query(id);
@@ -11888,8 +11918,10 @@
       );
       return this
     }
-
+    // 构造vue实例时传入的option
     var options = this.$options;
+
+    // 没有传入render函数， 将template/outerHTML当作template, 将template编译成render函数
     // resolve template/el and convert to render function
     if (!options.render) {
       var template = options.template;
@@ -11941,6 +11973,7 @@
         }
       }
     }
+    // 调用runtime时Vue上的mount方法， 将当前vnode挂仔到
     return mount.call(this, el, hydrating)
   };
 
@@ -11963,3 +11996,4 @@
   return Vue;
 
 }));
+//# sourceMappingURL=vue.js.map

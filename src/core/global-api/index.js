@@ -62,8 +62,13 @@ export function initGlobalAPI (Vue: GlobalAPI) {
 
   extend(Vue.options.components, builtInComponents)
 
+  // Vue.use
   initUse(Vue)
+  // Vue.mixin
   initMixin(Vue)
+  // Vue.extend
   initExtend(Vue)
+  // 设置Vue.components, Vue.filters, Vue.directives
+  // 没传配置就是从中取值
   initAssetRegisters(Vue)
 }

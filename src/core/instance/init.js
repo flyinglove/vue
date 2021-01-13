@@ -26,6 +26,7 @@ export function initMixin (Vue: Class<Component>) {
       mark(startTag)
     }
 
+    // 将当前对象标记为vue实例， 后续不需要再设置observe
     // a flag to avoid this being observed
     vm._isVue = true
     // merge options
@@ -36,9 +37,9 @@ export function initMixin (Vue: Class<Component>) {
       initInternalComponent(vm, options)
     } else {
       vm.$options = mergeOptions(
-        resolveConstructorOptions(vm.constructor),
-        options || {},
-        vm
+        resolveConstructorOptions(vm.constructor), // 获取vm构造函数的option
+        options || {}, // _init时传入的options
+        vm, // 当前vm示例对象
       )
     }
     /* istanbul ignore else */

@@ -1,3 +1,4 @@
+// runtime版vue
 /* @flow */
 
 import Vue from 'core/index'
@@ -18,7 +19,7 @@ import {
 import { patch } from './patch'
 import platformDirectives from './directives/index'
 import platformComponents from './components/index'
-
+// 在Vue.config上挂载方法
 // install platform specific utils
 Vue.config.mustUseProp = mustUseProp
 Vue.config.isReservedTag = isReservedTag
@@ -26,13 +27,16 @@ Vue.config.isReservedAttr = isReservedAttr
 Vue.config.getTagNamespace = getTagNamespace
 Vue.config.isUnknownElement = isUnknownElement
 
+// 挂载web平台上的全局指令v-model, v-show和全局组件keepalive
 // install platform runtime directives & components
 extend(Vue.options.directives, platformDirectives)
 extend(Vue.options.components, platformComponents)
 
+// 挂载path方法， 将vnode渲染成真实dom
 // install platform patch function
 Vue.prototype.__patch__ = inBrowser ? patch : noop
 
+// 定义$mount方法， 执行mountComponent
 // public mount method
 Vue.prototype.$mount = function (
   el?: string | Element,

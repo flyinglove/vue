@@ -16,6 +16,11 @@ export function initExtend (Vue: GlobalAPI) {
   /**
    * Class inheritance
    */
+  /**
+   * 初始化一个构造函数， 让它继承自Vue,
+   * 将它的option和Vue的全局option合并作为该构造函数的option
+   *
+   */
   Vue.extend = function (extendOptions: Object): Function {
     extendOptions = extendOptions || {}
     const Super = this

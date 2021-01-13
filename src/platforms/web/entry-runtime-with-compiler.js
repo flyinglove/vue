@@ -1,5 +1,5 @@
+// 完整版vue打包入口文件
 /* @flow */
-
 import config from 'core/config'
 import { warn, cached } from 'core/util/index'
 import { mark, measure } from 'core/util/perf'
@@ -28,8 +28,10 @@ Vue.prototype.$mount = function (
     )
     return this
   }
-
+  // 构造vue实例时传入的option
   const options = this.$options
+
+  // 没有传入render函数， 将template/outerHTML当作template, 将template编译成render函数
   // resolve template/el and convert to render function
   if (!options.render) {
     let template = options.template
@@ -79,6 +81,7 @@ Vue.prototype.$mount = function (
       }
     }
   }
+  // 调用runtime时Vue上的mount方法， 将当前vnode挂仔到
   return mount.call(this, el, hydrating)
 }
 
