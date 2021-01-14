@@ -17,8 +17,14 @@ function Vue (options) {
 // 在Vue构造函数上挂载相关实例方法
 
 // 挂载_init方法
+// 将调用该方法的对象标记为vue对象， vm._isVue = true
+// 将当前vue实例的option， vm构造函数的option, 以及当前vm合并之后作为当前vm的$options
+// 设置vm._renderProxy
 initMixin(Vue)
+// $data, $props
+// $set, $delete, $watch
 stateMixin(Vue)
+// 
 eventsMixin(Vue)
 lifecycleMixin(Vue)
 renderMixin(Vue)

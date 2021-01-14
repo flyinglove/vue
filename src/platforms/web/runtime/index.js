@@ -19,7 +19,7 @@ import {
 import { patch } from './patch'
 import platformDirectives from './directives/index'
 import platformComponents from './components/index'
-// 在Vue.config上挂载方法
+// 在Vue.config上挂载静态方法
 // install platform specific utils
 Vue.config.mustUseProp = mustUseProp
 Vue.config.isReservedTag = isReservedTag

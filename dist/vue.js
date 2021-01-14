@@ -4996,11 +4996,20 @@
       }
       // expose real self
       vm._self = vm;
+      // $parent, $root, $children, $refs,
+      // _watcher, _inactive, _directInactive, _isMounted, _isDestroyed, _isBeingDestroyed
       initLifecycle(vm);
+      // _events, _hasHookEvent,
+      // 执行updateComponentListeners
       initEvents(vm);
+      // _vnode, _staticTrees
+      // 初始化render解析函数h
+      // 将$attrs, $listeners设置成响应式的
       initRender(vm);
       callHook(vm, 'beforeCreate');
+      // 将inject的所有key注册为响应式的
       initInjections(vm); // resolve injections before data/props
+      // props, methods, data, computed, watch
       initState(vm);
       initProvide(vm); // resolve provide after data/props
       callHook(vm, 'created');
@@ -5086,8 +5095,14 @@
   // 在Vue构造函数上挂载相关实例方法
 
   // 挂载_init方法
+  // 将调用该方法的对象标记为vue对象， vm._isVue = true
+  // 将当前vue实例的option， vm构造函数的option, 以及当前vm合并之后作为当前vm的$options
+  // 设置vm._renderProxy
   initMixin(Vue);
+  // $data, $props
+  // $set, $delete, $watch
   stateMixin(Vue);
+  // 
   eventsMixin(Vue);
   lifecycleMixin(Vue);
   renderMixin(Vue);
@@ -5452,6 +5467,7 @@
   // 设置use, mixin, extend 静态方法
   // use: 执行plugins.install或者plugin方法
   // mixin: 将传入的mixin对象合并到Vue的全局options中
+  // extend: 生成渲染vue实例对象的构造函数
   initGlobalAPI(Vue);
 
   Object.defineProperty(Vue.prototype, '$isServer', {
@@ -9047,7 +9063,7 @@
   };
 
   // runtime版vue
-  // 在Vue.config上挂载方法
+  // 在Vue.config上挂载静态方法
   // install platform specific utils
   Vue.config.mustUseProp = mustUseProp;
   Vue.config.isReservedTag = isReservedTag;

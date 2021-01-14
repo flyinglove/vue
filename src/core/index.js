@@ -12,6 +12,7 @@ import { FunctionalRenderContext } from 'core/vdom/create-functional-component'
 // 设置use, mixin, extend 静态方法
 // use: 执行plugins.install或者plugin方法
 // mixin: 将传入的mixin对象合并到Vue的全局options中
+// extend: 生成渲染vue实例对象的构造函数
 initGlobalAPI(Vue)
 
 Object.defineProperty(Vue.prototype, '$isServer', {

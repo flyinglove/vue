@@ -50,11 +50,20 @@ export function initMixin (Vue: Class<Component>) {
     }
     // expose real self
     vm._self = vm
+    // $parent, $root, $children, $refs,
+    // _watcher, _inactive, _directInactive, _isMounted, _isDestroyed, _isBeingDestroyed
     initLifecycle(vm)
+    // _events, _hasHookEvent,
+    // 执行updateComponentListeners
     initEvents(vm)
+    // _vnode, _staticTrees
+    // 初始化render解析函数h
+    // 将$attrs, $listeners设置成响应式的
     initRender(vm)
     callHook(vm, 'beforeCreate')
+    // 将inject的所有key注册为响应式的
     initInjections(vm) // resolve injections before data/props
+    // props, methods, data, computed, watch
     initState(vm)
     initProvide(vm) // resolve provide after data/props
     callHook(vm, 'created')
