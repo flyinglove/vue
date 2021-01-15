@@ -63,8 +63,10 @@ export function initMixin (Vue: Class<Component>) {
     callHook(vm, 'beforeCreate')
     // 将inject的所有key注册为响应式的
     initInjections(vm) // resolve injections before data/props
+    // _props, _data
     // props, methods, data, computed, watch
     initState(vm)
+    // vm._provided
     initProvide(vm) // resolve provide after data/props
     callHook(vm, 'created')
 

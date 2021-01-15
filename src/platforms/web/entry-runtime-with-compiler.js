@@ -1,4 +1,5 @@
 // 完整版vue打包入口文件
+// 重写了$mount
 /* @flow */
 import config from 'core/config'
 import { warn, cached } from 'core/util/index'
@@ -63,7 +64,6 @@ Vue.prototype.$mount = function (
       if (process.env.NODE_ENV !== 'production' && config.performance && mark) {
         mark('compile')
       }
-
       const { render, staticRenderFns } = compileToFunctions(template, {
         outputSourceRange: process.env.NODE_ENV !== 'production',
         shouldDecodeNewlines,

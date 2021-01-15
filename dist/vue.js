@@ -923,6 +923,7 @@
     this.value = value;
     this.dep = new Dep();
     this.vmCount = 0;
+    // 在当前需要响应式的object上增加标记__ob__
     def(value, '__ob__', this);
     if (Array.isArray(value)) {
       if (hasProto) {
@@ -944,6 +945,7 @@
   Observer.prototype.walk = function walk (obj) {
     var keys = Object.keys(obj);
     for (var i = 0; i < keys.length; i++) {
+      // 遍历对象每个key, 分别设置响应式
       defineReactive$$1(obj, keys[i]);
     }
   };
@@ -991,7 +993,7 @@
       return
     }
     var ob;
-    if (hasOwn(value, '__ob__') && value.__ob__ instanceof Observer) {
+    if (hasOwn(value, '__ob__') && value.__ob__ instanceof Observer)  {
       ob = value.__ob__;
     } else if (
       shouldObserve &&
@@ -1032,15 +1034,21 @@
       val = obj[key];
     }
 
+    // 如果不是只监听一层响应式的话需要继续调用observe, 递归
     var childOb = !shallow && observe(val);
     Object.defineProperty(obj, key, {
       enumerable: true,
       configurable: true,
       get: function reactiveGetter () {
+        // 调用预先定义的getter
         var value = getter ? getter.call(obj) : val;
+        // 如果是watcher中触发的getter, 则需要收集依赖, 依赖收集只收集一次
         if (Dep.target) {
+          // 在该dep的订阅里面增加当前watcher
           dep.depend();
+          // 如果有嵌套的observer
           if (childOb) {
+            // 嵌套的dep里面也增加当前watcher, 内层的数据变化也会通过当前watcher更新
             childOb.dep.depend();
             if (Array.isArray(value)) {
               dependArray(value);
@@ -1050,24 +1058,28 @@
         return value
       },
       set: function reactiveSetter (newVal) {
+        // 先调用getter获取当前值
         var value = getter ? getter.call(obj) : val;
+        // 如果值没有发生变化， 直接返回
         /* eslint-disable no-self-compare */
         if (newVal === value || (newVal !== newVal && value !== value)) {
           return
         }
+        // 开发环境可以触发自定义setter
         /* eslint-enable no-self-compare */
         if (customSetter) {
           customSetter();
         }
         // #7981: for accessor properties without setter
-        if (getter && !setter) { return }
-        if (setter) {
+        if (getter && !setter) { return } // 如果没有setter直接返回
+        if (setter) { // 调用setter
           setter.call(obj, newVal);
         } else {
           val = newVal;
         }
+        // 新赋的值也需要再observe一下
         childOb = !shallow && observe(newVal);
-        dep.notify();
+        dep.notify(); // 通知变更
       }
     });
   }
@@ -5009,8 +5021,10 @@
       callHook(vm, 'beforeCreate');
       // 将inject的所有key注册为响应式的
       initInjections(vm); // resolve injections before data/props
+      // _props, _data
       // props, methods, data, computed, watch
       initState(vm);
+      // vm._provided
       initProvide(vm); // resolve provide after data/props
       callHook(vm, 'created');
 
@@ -5102,9 +5116,11 @@
   // $data, $props
   // $set, $delete, $watch
   stateMixin(Vue);
-  // 
+  // $on, $off, $once, $emit
   eventsMixin(Vue);
+  // _update, $forceUpdate, $destroy
   lifecycleMixin(Vue);
+  // $nextTick, _render,
   renderMixin(Vue);
 
   /*  */
@@ -11969,7 +11985,6 @@
         if (config.performance && mark) {
           mark('compile');
         }
-
         var ref = compileToFunctions(template, {
           outputSourceRange: "development" !== 'production',
           shouldDecodeNewlines: shouldDecodeNewlines,
